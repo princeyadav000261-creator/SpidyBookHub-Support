@@ -1,342 +1,140 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Spidy Book Hub Support</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+    // CORS headers
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    };
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    // 🔒 USER KA IP ADDRESS NIKALNA 🔒
+    const clientIP = request.headers.get("cf-connecting-ip") || "unknown-ip";
+
+    // ==========================================
+    // ROUTE 1: /generate (Key + IP Save karna)
+    // ==========================================
+    if (url.pathname === "/generate") {
+      
+      // Basic URL Bypass Protection
+      const secretToken = url.searchParams.get("token");
+      if (secretToken !== "spidy_vip_pass") {
+        const errorHtml = `
+        <!DOCTYPE html>
+        <html><head><title>Access Denied</title></head>
+        <body style="background:#020617;color:#f8fafc;text-align:center;font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;">
+           <div style="background:#1e293b;padding:40px;border-radius:12px;border:1px solid #ef4444;">
+              <h2 style="color:#ef4444;margin-top:0;">🚫 Access Denied!</h2>
+              <p>Direct access blocked. Use official links.</p>
+           </div>
+        </body></html>
+        `;
+        return new Response(errorHtml, { status: 403, headers: { "Content-Type": "text/html" } });
+      }
+
+      // Naya Key Generate karna
+      const newKey = "SPIDY-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      // 🔒 YAHAN KEY KE SATH USER KA IP ADDRESS SAVE HO RAHA HAI 🔒
+      await env.SPIDY_TOKENS.put(newKey, clientIP, { expirationTtl: 172800 });
+
+      const html2 = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Spidy Book Hub - Auth Key</title>
+          <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fira+Code:wght@500;600&display=swap" rel="stylesheet">
+          <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+          <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+              body { background-color: #020617; background-image: radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 40%), radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 40%); min-height: 100vh; display: flex; justify-content: center; align-items: center; color: #ffffff; padding: 20px; overflow: hidden; position: relative; }
+              body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px); background-size: 30px 30px; z-index: 0; opacity: 0.5; }
+              .ambient-glow { position: absolute; width: 300px; height: 300px; background: rgba(6, 182, 212, 0.25); filter: blur(100px); border-radius: 50%; z-index: 0; animation: pulse-glow 4s infinite alternate; }
+              @keyframes pulse-glow { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 0.8; } }
+              .auth-card { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(24px); width: 100%; max-width: 420px; border-radius: 16px; padding: 35px 30px; position: relative; z-index: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-top: none; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(255, 255, 255, 0.02), inset 0 4px 15px rgba(6, 182, 212, 0.15); text-align: center; overflow: hidden; }
+              .auth-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #06b6d4, #10b981, #0ea5e9, #10b981, #06b6d4); background-size: 200% 100%; animation: gradient-sweep 3s linear infinite; z-index: 10; }
+              @keyframes gradient-sweep { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
+              .icon-circle { width: 60px; height: 60px; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px; color: #06b6d4; font-size: 24px; box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); animation: float-icon 3s ease-in-out infinite; }
+              @keyframes float-icon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+              .auth-card h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+              .auth-card p.subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 25px; }
+              .key-container { position: relative; margin-bottom: 20px; }
+              .key-input { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; color: #34d399; font-family: 'Fira Code', monospace; font-size: 18px; font-weight: 600; text-align: center; letter-spacing: 2px; outline: none; box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.6); }
+              .copy-btn { width: 100%; background: linear-gradient(135deg, #06b6d4 0%, #059669 100%); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 14.5px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(6, 182, 212, 0.25); margin-bottom: 25px; }
+              .copy-btn:hover { box-shadow: 0 8px 25px rgba(6, 182, 212, 0.45); transform: translateY(-2px); }
+              .copy-btn:active { transform: translateY(1px); }
+              .copy-btn.copied { background: linear-gradient(135deg, #10b981 0%, #047857 100%); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+              .warning-box { background: rgba(244, 63, 94, 0.06); border: 1px solid rgba(244, 63, 94, 0.15); border-left: 4px solid #f43f5e; border-radius: 8px; padding: 15px 15px 15px 18px; display: flex; align-items: flex-start; gap: 12px; text-align: left; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.1); }
+              .warning-box i { color: #f43f5e; font-size: 16px; margin-top: 3px; }
+              .warning-box p { color: #cbd5e1; font-size: 11px; line-height: 1.6; }
+              .card-footer { display: flex; justify-content: center; gap: 20px; color: #64748b; font-size: 11px; font-weight: 500; }
+              .card-footer span { display: flex; align-items: center; gap: 6px; }
+          </style>
+      </head>
+      <body>
+          <div class="ambient-glow"></div>
+          <div class="auth-card">
+              <div class="card-header"><div class="icon-circle"><i class="fas fa-key"></i></div><h2>Your Authentication Key</h2><p class="subtitle">Your Auth Key is generated and ready to use in the app.</p></div>
+              <div class="key-container">
+                  <input type="text" class="key-input" id="authKeyInput" value="${newKey}" readonly>
+              </div>
+              <button class="copy-btn" id="copyBtn"><i class="far fa-copy"></i> <span>Copy Auth Key</span></button>
+              <div class="warning-box"><i class="fas fa-exclamation-circle"></i><p>This Auth Key is specifically locked to your current device/IP. It will NOT work if shared with anyone else.</p></div>
+              <div class="card-footer"><span><i class="far fa-clock"></i> Valid for 48 Hours</span><span><i class="fas fa-shield-alt"></i> Device Locked</span></div>
+          </div>
+          <script>
+              document.getElementById('copyBtn').addEventListener('click', () => {
+                  const input = document.getElementById('authKeyInput');
+                  input.select();
+                  navigator.clipboard.writeText(input.value).then(() => {
+                      const btn = document.getElementById('copyBtn');
+                      btn.classList.add('copied');
+                      btn.innerHTML = '<i class="fas fa-check"></i> <span>Copied Successfully!</span>';
+                      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="far fa-copy"></i> <span>Copy Auth Key</span>'; }, 3000);
+                  });
+              });
+          </script>
+      </body>
+      </html>
+      `;
+      return new Response(html2, { headers: { "Content-Type": "text/html" } });
+    }
+
+    // ==========================================
+    // ROUTE 2: /verify (Verify karte time IP check karna)
+    // ==========================================
+    if (url.pathname === "/verify" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const userKey = body.key;
+
+        // Database se IP Address nikalo jisne key banayi thi
+        const storedIP = await env.SPIDY_TOKENS.get(userKey);
+
+        if (!storedIP) {
+          return new Response(JSON.stringify({ success: false, message: "Invalid or Expired Key" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
-        body {
-            background-color: #050505;
-            background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1.5px, transparent 1.5px);
-            background-size: 24px 24px;
-            color: #ffffff;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden; 
-            position: relative;
-            touch-action: manipulation;
+        // 🔒 MAIN HACKER CHECK: IP Match ho raha hai kya? 🔒
+        if (storedIP !== clientIP) {
+          // Agar kisi doosre ne key daali toh usko ye error jayega!
+          return new Response(JSON.stringify({ success: false, message: "❌ Security Alert: This key is bound to another device. Please generate your own key." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
-        .bg-animation-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .bg-orb-1, .bg-orb-2 {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(90px);
-            animation: float 12s ease-in-out infinite alternate;
-        }
+        return new Response(JSON.stringify({ success: true, message: "Valid Key" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         
-        .bg-orb-1 {
-            width: 350px;
-            height: 350px;
-            background: rgba(140, 82, 255, 0.25);
-            top: -50px;
-            left: -100px;
-        }
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, message: "Server error" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
 
-        .bg-orb-2 {
-            width: 450px;
-            height: 450px;
-            background: rgba(94, 23, 235, 0.2);
-            bottom: -150px;
-            right: -100px;
-            animation-delay: -6s;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(40px, 60px) scale(1.1); }
-        }
-
-        .contact-card {
-            background: rgba(20, 20, 25, 0.55);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            width: 420px; 
-            max-width: 92vw; 
-            margin: 20px auto; 
-            padding: 28px 25px 22px 25px;
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            z-index: 1; 
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 22px;
-        }
-
-        .header h2 {
-            font-size: 22px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 5px;
-        }
-
-        .header-text {
-            background: linear-gradient(135deg, #ffffff, #b3b3c5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .dotted-divider {
-            width: 90%;
-            margin: 14px auto 18px auto;
-            border-top: 2.5px dotted rgba(140, 82, 255, 0.5);
-            opacity: 0.8;
-        }
-
-        .header p {
-            color: #94a3b8;
-            font-size: 11.5px;
-            font-weight: 400;
-            line-height: 1.6;
-            padding: 0 10px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .input-group {
-            margin-bottom: 12px;
-            position: relative;
-        }
-
-        /* Update: Labels are now White and Bold */
-        .input-group label {
-            display: block;
-            font-size: 11.5px;
-            color: #ffffff; /* White Color */
-            margin-bottom: 6px;
-            font-weight: 700; /* Bold */
-            padding-left: 2px;
-            letter-spacing: 0.3px;
-        }
-
-        /* Update: Typed text and select text are now Gray and Bold */
-        input, select, textarea {
-            width: 100%;
-            padding: 12px 14px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            color: #a0a0b0; /* Light Gray Color */
-            font-weight: 600; /* Bold */
-            font-size: 13px;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        /* Update: Placeholders are now Gray and Bold */
-        input::placeholder, textarea::placeholder {
-            color: #7a8a9e; /* Slightly darker Gray for contrast */
-            font-weight: 600; /* Bold */
-        }
-
-        input:focus, select:focus, textarea:focus {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: #8c52ff;
-            box-shadow: 0 0 0 3px rgba(140, 82, 255, 0.2);
-        }
-
-        input[type="email"]:not(:placeholder-shown):invalid {
-            border-color: #ff4757;
-            box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15);
-        }
-
-        textarea {
-            height: 75px;
-            resize: none;
-        }
-
-        select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            cursor: pointer;
-        }
-
-        /* Update: Dropdown options styled to match */
-        option {
-            background: #0f0f13;
-            color: #a0a0b0;
-            font-weight: 600;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #8c52ff 0%, #5e17eb 100%);
-            border: none;
-            border-radius: 12px;
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 6px 20px rgba(94, 23, 235, 0.35);
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(94, 23, 235, 0.5);
-            background: linear-gradient(135deg, #9b66ff 0%, #6b21ff 100%);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-
-        .submit-btn svg {
-            transition: transform 0.3s ease;
-        }
-
-        .submit-btn:hover svg {
-            transform: translateX(4px) translateY(-4px);
-        }
-
-        .encryption-note {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            margin-top: 20px;
-            font-size: 11px;
-            color: #8696a0;
-            font-weight: 500;
-        }
-
-        .encryption-note svg {
-            width: 10px;
-            height: 10px;
-            fill: #8696a0;
-            margin-bottom: 1px;
-        }
-
-        .encryption-note .green-text {
-            color: #25D366;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="bg-animation-container">
-        <div class="bg-orb-1"></div>
-        <div class="bg-orb-2"></div>
-    </div>
-
-    <div class="contact-card">
-        <div class="header">
-            <h2>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="url(#purple-gradient)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <defs>
-                        <linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#8c52ff" />
-                            <stop offset="100%" stop-color="#5e17eb" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z"></path>
-                    <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"></path>
-                </svg>
-                <span class="header-text">Spidy Book Hub Support</span>
-            </h2>
-            
-            <div class="dotted-divider"></div>
-        </div>
-
-
-        <form action="https://formsubmit.co/1f8501145e615fe7c8afcd6033ea3a74" method="POST">
-            
-            <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" name="_subject" value="New Message from Spidy Book Hub!">
-
-            <div class="form-row">
-                <div class="input-group">
-                    <label>First Name</label>
-                    <input type="text" name="First_Name" placeholder="Prince" required>
-                </div>
-                <div class="input-group">
-                    <label>Last Name</label>
-                    <input type="text" name="Last_Name" placeholder="Yadav" required>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>Email Address</label>
-                <input type="email" name="Email" placeholder="princeyadav@gmail.com" 
-                       pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$"
-                       oninvalid="this.setCustomValidity('Kripya ek sahi email darj karein (jaise: aapkanaam@gmail.com)')"
-                       oninput="this.setCustomValidity('')" 
-                       required>
-            </div>
-
-            <div class="input-group">
-                <label>How can we help?</label>
-                <select name="Subject">
-                    <option value="Report Broken Link">⚠️ Report Broken Download Link</option>
-                    <option value="Request New Book">📓 Request a New Book to be Added</option>
-                    
-                    <option value="Download Issue">📥 Download File Issue</option>
-                    <option value="General Inquiry">💬 General Inquiry</option>
-                    <option value="Saying Thanks">❤️ Saying Thanks </option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label>Message</label>
-                <textarea name="Message" placeholder="E.g., The link for 'Atomic Habits' is broken, or Please add this new book..." required></textarea>
-            </div>
-
-            <button type="submit" class="submit-btn">
-                Send Message
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </button>
-        </form>
-
-        <div class="encryption-note">
-            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>
-            <span>Your personal messages are <span class="green-text">end-to-end encrypted</span></span>
-        </div>
-    </div>
-
-</body>
-</html>
+    return new Response("Spidy API Running", { status: 200 });
+  }
+};
